@@ -1,4 +1,4 @@
-"""Alpha 1.0"""
+"""Alpha 2.0"""
 import tkinter as tk
 from tkinter.constants import *
 from collections.abc import Callable
@@ -47,7 +47,7 @@ class Calculator:
 
     def create_label(self) -> None:
         self.label = tk.Label(
-            text="0",
+            text="",
             bg="black",
             fg="white",
             anchor=tk.SE,
@@ -63,7 +63,7 @@ class Calculator:
         self.b = ""  # Второе число
         self.sign = ""  # Знак операции
         self.finish = False # Равно
-        self.label.config(text='0')
+        self.label.config(text="0")
 
     def calculate(self, text: str) -> None:
         # Получаю нажатую кнопку
@@ -94,23 +94,31 @@ class Calculator:
         # Нажата =
         if key == '=':
             if self.b == '': self.b = self.a
+            try:
+                self.a = int(self.a)
+                self.b = int(self.b)
+            except ValueError:
+                self.a = float(self.a)
+                self.b = float(self.b)
             match self.sign:
                 case '+':
-                    self.a = int(self.a) + int(self.b)
+                    self.a = self.a + self.b
                 case '-':
-                    self.a = int(self.a) - int(self.b)
+                    self.a = self.a - self.b
                 case '/':
                     try:
-                        self.a = int(self.a) / int(self.b)
+                        self.a = self.a / self.b
                     except ZeroDivisionError:
-                        self.label.config(text='Ошибка')
-                        self.a = ''  # Первое число
-                        self.b = ''  # Второе число
-                        self.sign = '' # Знак
+                        self.label.config(text="Ошибка")
+                        self.a = ""  # Первое число
+                        self.b = ""  # Второе число
+                        self.sign = "" # Знак
                         return
                     # Умножить
                 case '\u00D7':
-                    self.a = int(self.a) * int(self.b)
+                    self.a = self.a * self.b
+            self.a = str(self.a)
+            self.b = str(self.b)
             self.finish = True
             self.label.config(text=self.a)
 
