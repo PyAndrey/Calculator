@@ -1,4 +1,4 @@
-"""Alpha 2.0"""
+"""Alpha 2.1"""
 import tkinter as tk
 from tkinter.constants import *
 from collections.abc import Callable
@@ -47,7 +47,7 @@ class Calculator:
 
     def create_label(self) -> None:
         self.label = tk.Label(
-            text="",
+            text="0",
             bg="black",
             fg="white",
             anchor=tk.SE,
@@ -64,6 +64,14 @@ class Calculator:
         self.sign = ""  # Знак операции
         self.finish = False # Равно
         self.label.config(text="0")
+    
+    def backspace(self, text: str) -> None:
+        if self.a != '' and self.sign == '' and self.b == '':
+            self.a = self.a[0:-1]
+            self.label.config(text=self.a)
+        elif self.a != '' and self.sign != '' and self.b != '':
+            self.b = self.b[0:-1]
+            self.label.config(text=self.b)
 
     def calculate(self, text: str) -> None:
         # Получаю нажатую кнопку
@@ -128,7 +136,7 @@ class Calculator:
         # 1 ряд
         self.create_btn(0, 1, "CE", self.clear_all)
         self.create_btn(1, 1, "C", self.clear_all)
-        self.create_btn(2, 1, "<", self.calculate)
+        self.create_btn(2, 1, "<", self.backspace)
         self.create_btn(3, 1, "/", self.calculate)
         # 2 ряд
         self.create_btn(0, 2, "7", self.calculate)
