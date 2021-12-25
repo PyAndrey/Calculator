@@ -1,4 +1,8 @@
-"""Alpha 2.1"""
+"""
+Alpha 2.2
+Calculator by Andrei Yuzvuk
+26.12.2021
+"""
 import tkinter as tk
 from tkinter.constants import *
 from collections.abc import Callable
@@ -58,7 +62,7 @@ class Calculator:
         )
         self.label.grid(columnspan=4, row=0, sticky=W + E)
 
-    def clear_all(self, text) -> None:
+    def clear_all(self, text: str) -> None:
         self.a = ""  # Первое число
         self.b = ""  # Второе число
         self.sign = ""  # Знак операции
@@ -66,7 +70,9 @@ class Calculator:
         self.label.config(text="0")
     
     def backspace(self, text: str) -> None:
-        if self.a != '' and self.sign == '' and self.b == '':
+        if self.a == '' and self.sign == '' and self.b == '':
+            self.label.config(text='0')
+        elif self.a != '' and self.sign == '' and self.b == '':
             self.a = self.a[0:-1]
             self.label.config(text=self.a)
         elif self.a != '' and self.sign != '' and self.b != '':
@@ -99,9 +105,19 @@ class Calculator:
             self.sign = key
             self.label.config(text=self.sign)
         
+        # Если нажата +/-
+        if key == '+/-':
+            if self.a != '' and self.b == '':
+                self.a = f"-{self.a}"
+                self.label.config(text=self.a)
+            elif self.a != '' and self.b != '':
+                self.b = f"-{self.b}"
+                self.label.config(text=self.b)
+
         # Нажата =
         if key == '=':
             if self.b == '': self.b = self.a
+            # Преобразование во float если возможно
             try:
                 self.a = int(self.a)
                 self.b = int(self.b)
