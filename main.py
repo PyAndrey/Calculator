@@ -10,23 +10,29 @@ from collections.abc import Callable
 
 class Calculator:
     
+    # Инициализация окна
     window = tk.Tk()
+    # Изменение заголовка окна
     window.title("Калькулятор")
+    # Окно не изменяется по размеру
     window.resizable(False, False)
 
     def __init__(self) -> None:
         self.a = ""  # Первое число
         self.b = ""  # Второе число
         self.sign = ""  # Знак операции
-        self.finish = False # Равно
+        self.finish = False # Была нажата кнопка = ?
         self.digit = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".")
         self.action = ("/", "\u00D7", "-", "+")
 
     def create_btn(self, column: int, row: int, text: str, func: Callable) -> None:
+        """Создание кнопок"""
+        # При наведении курсора
         def on_enter(e):
             button["background"] = "#4A4A4A"
             button["foreground"] = "white"
 
+        # При убирании курсора
         def on_leave(e):
             button["background"] = "#404040"
             button["foreground"] = "white"
@@ -50,6 +56,7 @@ class Calculator:
         button.grid(column=column, row=row)
 
     def create_label(self) -> None:
+        """Создание поля вывода чисел и операций"""
         self.label = tk.Label(
             text="0",
             bg="black",
@@ -63,13 +70,16 @@ class Calculator:
         self.label.grid(columnspan=4, row=0, sticky=W + E)
 
     def clear_all(self, text: str) -> None:
+        """Кнопка CE,C очистки всего"""
         self.a = ""  # Первое число
         self.b = ""  # Второе число
         self.sign = ""  # Знак операции
-        self.finish = False # Равно
+        self.finish = False # Была нажата кнопка = ?
         self.label.config(text="0")
     
+    # Оптимизировать!
     def backspace(self, text: str) -> None:
+        """Кнопка удаления последней цифры"""
         if self.a == '' and self.sign == '' and self.b == '':
             self.label.config(text='0')
         elif self.a != '' and self.sign == '' and self.b == '':
@@ -79,7 +89,9 @@ class Calculator:
             self.b = self.b[0:-1]
             self.label.config(text=self.b)
 
+    # Оптимизировать!
     def calculate(self, text: str) -> None:
+        """Функция вычислений и логики"""
         # Получаю нажатую кнопку
         key = text
         # Если нажата кнопка 0-9 или .
