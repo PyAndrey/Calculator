@@ -1,9 +1,14 @@
 """
-Alpha 2.2
+Beta 1.0
 Calculator by Andrei Yuzvuk
-26.12.2021
+15.01.2022
+Bugs:
+    1. Может быть две точки в числе
+    2. Число int преобразуется во float
 """
-import tkinter as tk
+from tkinter import *
+from tkinter import ttk
+from tkinter import messagebox
 from tkinter.constants import *
 from collections.abc import Callable
 
@@ -11,7 +16,7 @@ from collections.abc import Callable
 class Calculator:
     
     # Инициализация окна
-    window = tk.Tk()
+    window = Tk()
     # Изменение заголовка окна
     window.title("Калькулятор")
     # Окно не изменяется по размеру
@@ -24,8 +29,9 @@ class Calculator:
         self.finish = False # Была нажата кнопка = ?
         self.digit = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".")
         self.action = ("/", "\u00D7", "-", "+")
+        self.label_text = StringVar(self.window, "0")
 
-    def create_btn(self, column: int, row: int, text: str, func: Callable) -> None:
+    def create_btn(self, row: int, column: int, text: str, func: Callable) -> None:
         """Создание кнопок"""
         # При наведении курсора
         def on_enter(e):
@@ -37,7 +43,7 @@ class Calculator:
             button["background"] = "#404040"
             button["foreground"] = "white"
 
-        button = tk.Button(
+        button = Button(
             text=text,
             width=9,
             height=3,
@@ -46,28 +52,28 @@ class Calculator:
             activeforeground="white",
             foreground="white",
             bd=0,
-            font=("Arial", 12),
+            font=("Arial", 12, "bold"),
             command=lambda: func(text),
         )
 
         button.bind("<Enter>", on_enter)
         button.bind("<Leave>", on_leave)
 
-        button.grid(column=column, row=row)
+        button.grid(row=row, column=column)
 
     def create_label(self) -> None:
         """Создание поля вывода чисел и операций"""
-        self.label = tk.Label(
-            text="0",
-            bg="black",
-            fg="white",
-            anchor=tk.SE,
-            justify=tk.RIGHT,
+        self.label = Label(
+            textvariable=self.label_text,
+            background="black",
+            foreground="white",
+            anchor=SE,
+            justify=RIGHT,
             height=3,
-            font=("Arial", 24),
+            font=("Arial", 24, "bold"),
             bd=0,
         )
-        self.label.grid(columnspan=4, row=0, sticky=W + E)
+        self.label.grid(row=0, columnspan=4, sticky=W + E)
 
     def clear_all(self, text: str) -> None:
         """Кнопка CE,C очистки всего"""
@@ -75,67 +81,86 @@ class Calculator:
         self.b = ""  # Второе число
         self.sign = ""  # Знак операции
         self.finish = False # Была нажата кнопка = ?
-        self.label.config(text="0")
+        self.label_text.set("0")
     
-    # Оптимизировать!
-    def backspace(self, text: str) -> None:
+
+    def backspace(self, value: str) -> None:
         """Кнопка удаления последней цифры"""
-        if self.a == '' and self.sign == '' and self.b == '':
-            self.label.config(text='0')
-        elif self.a != '' and self.sign == '' and self.b == '':
+        if self.a != '' and self.sign == '' and self.b == '':
             self.a = self.a[0:-1]
-            self.label.config(text=self.a)
+            self.label_text.set(self.a)
+            if not self.a:
+                self.label_text.set("0")
         elif self.a != '' and self.sign != '' and self.b != '':
             self.b = self.b[0:-1]
-            self.label.config(text=self.b)
+            self.label_text.set(self.b)
+            if not self.b:
+                self.label_text.set("0")
 
-    # Оптимизировать!
-    def calculate(self, text: str) -> None:
-        """Функция вычислений и логики"""
-        # Получаю нажатую кнопку
-        key = text
+    # Проверяет строку на число float
+    def isfloat(self, value: str) -> bool:
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+
+    # По нажатию на кнопку с цифрой
+    def number_button_press(self, value: str) -> None:
         # Если нажата кнопка 0-9 или .
-        if key in self.digit:
-            # Если второе число == '' и знак = ''
+        if value in self.digit:
+            # Если второе число пустое и знак пустой
             if self.b == '' and self.sign == '':
-                self.a += key
+                self.a += value
                 print(f'{self.a=}')
-                self.label.config(text=self.a)
-            # Если первое число != '' и второе число != '' и finish == True
+                self.label_text.set(self.a)
+            # Если первое число не пустое и второе число не пустое и нажата равно
             elif self.a != '' and self.b != '' and self.finish:
-                self.b = key
+                self.b = value
                 self.finish = False
-                self.label.config(text=self.b)
+                self.label_text.set(self.b)
             else:
-                self.b += key
+                self.b += value
                 print(f'{self.b=}')
-                self.label.config(text=self.b)
-                
+                self.label_text.set(self.b)
 
+    # По нажатию на знаки
+    def math_button_press(self, value: str) -> None:
         # Если нажата кнопка + - / *
-        if key in self.action:
-            self.sign = key
-            self.label.config(text=self.sign)
+        if value in self.action:
+            self.sign = value
+            print(f'{self.sign=}')
+            self.label_text.set(self.sign)
         
         # Если нажата +/-
-        if key == '+/-':
+        if value == '+/-':
+            print(f'{value=}')
+            # Если первое число не пустое и второе пустое
             if self.a != '' and self.b == '':
+                # Первое число становится отрицательным
                 self.a = f"-{self.a}"
-                self.label.config(text=self.a)
+                self.label_text.set(self.a)
+            # Если первое число не пустое и второе не пустое
             elif self.a != '' and self.b != '':
+                #  Второе число становится отрицательным
                 self.b = f"-{self.b}"
-                self.label.config(text=self.b)
+                self.label_text.set(self.b)
 
+    # По нажатию на равно
+    def equal_button_press(self, value: str) -> None:
         # Нажата =
-        if key == '=':
+        if value == '=':
+            # Если есть первое число и знак, то прибавляется первое число к первому чилу
             if self.b == '': self.b = self.a
+
             # Преобразование во float если возможно
-            try:
-                self.a = int(self.a)
-                self.b = int(self.b)
-            except ValueError:
+            if self.isfloat(self.a) or self.isfloat(self.b):
                 self.a = float(self.a)
                 self.b = float(self.b)
+            else:
+                self.a = int(self.a)
+                self.b = int(self.b)
+
             match self.sign:
                 case '+':
                     self.a = self.a + self.b
@@ -143,49 +168,50 @@ class Calculator:
                     self.a = self.a - self.b
                 case '/':
                     try:
-                        self.a = self.a / self.b
+                        self.a = round(self.a / self.b, 4)
                     except ZeroDivisionError:
-                        self.label.config(text="Ошибка")
-                        self.a = ""  # Первое число
-                        self.b = ""  # Второе число
-                        self.sign = "" # Знак
+                        self.label_text.set("Ошибка")
+                        messagebox.showwarning(message="Ты долбаёб? В школе не учили? На ноль делить нельзя!!!")
+                        self.a = ""  # Первое число обнулилось
+                        self.b = ""  # Второе число обнулилось
+                        self.sign = "" # Знак обнулился
                         return
-                    # Умножить
-                case '\u00D7':
+                case '\u00D7': # Умножить
                     self.a = self.a * self.b
             self.a = str(self.a)
             self.b = str(self.b)
             self.finish = True
-            self.label.config(text=self.a)
+            print(f'{self.a=}')
+            self.label_text.set(self.a)    
 
     def main(self) -> None:
         # Label
         self.create_label()
         # 1 ряд
-        self.create_btn(0, 1, "CE", self.clear_all)
+        self.create_btn(1, 0, "CE", self.clear_all)
         self.create_btn(1, 1, "C", self.clear_all)
-        self.create_btn(2, 1, "<", self.backspace)
-        self.create_btn(3, 1, "/", self.calculate)
+        self.create_btn(1, 2, "<", self.backspace)
+        self.create_btn(1, 3, "/", self.math_button_press)
         # 2 ряд
-        self.create_btn(0, 2, "7", self.calculate)
-        self.create_btn(1, 2, "8", self.calculate)
-        self.create_btn(2, 2, "9", self.calculate)
-        self.create_btn(3, 2, "\u00D7", self.calculate) # Умножить
+        self.create_btn(2, 0, "7", self.number_button_press)
+        self.create_btn(2, 1, "8", self.number_button_press)
+        self.create_btn(2, 2, "9", self.number_button_press)
+        self.create_btn(2, 3, "\u00D7", self.math_button_press) # Умножить
         # 3 ряд
-        self.create_btn(0, 3, "4", self.calculate)
-        self.create_btn(1, 3, "5", self.calculate)
-        self.create_btn(2, 3, "6", self.calculate)
-        self.create_btn(3, 3, "-", self.calculate)
+        self.create_btn(3, 0, "4", self.number_button_press)
+        self.create_btn(3, 1, "5", self.number_button_press)
+        self.create_btn(3, 2, "6", self.number_button_press)
+        self.create_btn(3, 3, "-", self.math_button_press)
         # 4 ряд
-        self.create_btn(0, 4, "1", self.calculate)
-        self.create_btn(1, 4, "2", self.calculate)
-        self.create_btn(2, 4, "3", self.calculate)
-        self.create_btn(3, 4, "+", self.calculate)
+        self.create_btn(4, 0, "1", self.number_button_press)
+        self.create_btn(4, 1, "2", self.number_button_press)
+        self.create_btn(4, 2, "3", self.number_button_press)
+        self.create_btn(4, 3, "+", self.math_button_press)
         # 5 ряд
-        self.create_btn(0, 5, "+/-", self.calculate)
-        self.create_btn(1, 5, "0", self.calculate)
-        self.create_btn(2, 5, ".", self.calculate)
-        self.create_btn(3, 5, "=", self.calculate)
+        self.create_btn(5, 0, "+/-", self.math_button_press)
+        self.create_btn(5, 1, "0", self.number_button_press)
+        self.create_btn(5, 2, ".", self.number_button_press)
+        self.create_btn(5, 3, "=", self.equal_button_press)
 
     def start(self) -> None:
         self.main()
