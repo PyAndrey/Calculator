@@ -1,10 +1,10 @@
 """
-Beta 1.0
+Beta 1.1
 Calculator by Andrei Yuzvuk
-15.01.2022
+16.01.2022
 Bugs:
     1. Может быть две точки в числе
-    2. Число int преобразуется во float
+    2. 45 + 6 + 6 = 516 при двух плюсах добавляется ко 2 числу
 """
 from tkinter import *
 from tkinter import ttk
@@ -75,8 +75,14 @@ class Calculator:
         )
         self.label.grid(row=0, columnspan=4, sticky=W + E)
 
-    def clear_all(self, text: str) -> None:
-        """Кнопка CE,C очистки всего"""
+    def clear_last(self, value: str) -> None:
+        """Кнопка CE очистки последнего"""
+        self.b = ""  # Второе число
+        self.finish = False # Была нажата кнопка = ?
+        self.label_text.set("0")
+
+    def clear_all(self, value: str) -> None:
+        """Кнопка C очистки всего"""
         self.a = ""  # Первое число
         self.b = ""  # Второе число
         self.sign = ""  # Знак операции
@@ -97,16 +103,17 @@ class Calculator:
             if not self.b:
                 self.label_text.set("0")
 
-    # Проверяет строку на число float
     def isfloat(self, value: str) -> bool:
+        """Проверяет строку на число float"""
         try:
-            float(value)
-            return True
+            if '.' in value:
+                float(value)
+                return True
         except ValueError:
             return False
 
-    # По нажатию на кнопку с цифрой
     def number_button_press(self, value: str) -> None:
+        """По нажатию на кнопку с цифрой"""
         # Если нажата кнопка 0-9 или .
         if value in self.digit:
             # Если второе число пустое и знак пустой
@@ -114,6 +121,11 @@ class Calculator:
                 self.a += value
                 print(f'{self.a=}')
                 self.label_text.set(self.a)
+            # Пофиксить баг
+            elif self.a != '' and self.b != '' and self.sign != '':
+                self.b = value
+                self.finish = False
+                self.label_text.set(self.b)
             # Если первое число не пустое и второе число не пустое и нажата равно
             elif self.a != '' and self.b != '' and self.finish:
                 self.b = value
@@ -124,8 +136,8 @@ class Calculator:
                 print(f'{self.b=}')
                 self.label_text.set(self.b)
 
-    # По нажатию на знаки
     def math_button_press(self, value: str) -> None:
+        """По нажатию на математические знаки"""
         # Если нажата кнопка + - / *
         if value in self.action:
             self.sign = value
@@ -146,8 +158,8 @@ class Calculator:
                 self.b = f"-{self.b}"
                 self.label_text.set(self.b)
 
-    # По нажатию на равно
     def equal_button_press(self, value: str) -> None:
+        """По нажатию на равно"""
         # Нажата =
         if value == '=':
             # Если есть первое число и знак, то прибавляется первое число к первому чилу
@@ -185,10 +197,11 @@ class Calculator:
             self.label_text.set(self.a)    
 
     def main(self) -> None:
+        """Тело приложения"""
         # Label
         self.create_label()
         # 1 ряд
-        self.create_btn(1, 0, "CE", self.clear_all)
+        self.create_btn(1, 0, "CE", self.clear_last)
         self.create_btn(1, 1, "C", self.clear_all)
         self.create_btn(1, 2, "<", self.backspace)
         self.create_btn(1, 3, "/", self.math_button_press)
