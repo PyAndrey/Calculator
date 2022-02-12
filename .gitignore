@@ -1,5 +1,6 @@
 .vscode
 test.py
+logic.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
